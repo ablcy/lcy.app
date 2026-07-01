@@ -1,34 +1,41 @@
-// ===== Load Data from data.json =====
+// ===== Data Loading (async-compatible) =====
 let siteData = null;
 
-async function loadSiteData() {
-    // 1. 立即用内联数据渲染首屏，无需等待 fetch
+(function initSite() {
+    // 1. 立即用内联数据渲染 Hero（兜底：内联脚本已做，这里确保一致性）
     if (window.__hero_preload) {
         renderHeroFromPreload();
     }
 
-    // 2. 异步拉取完整数据，覆盖更新所有区域
-    try {
-        const resp = await fetch('data.json');
-        if (!resp.ok) throw new Error('data.json not found');
-        siteData = await resp.json();
-        renderHero();
-        renderAbout();
-        renderProjects();
-        renderContact();
-    } catch (e) {
-        console.warn('data.json load failed, using fallback', e);
+    // 2. DOM 就绪后用完整 data.json 覆盖更新所有区域
+    function loadFull() {
+        fetch('data.json')
+            .then(function(resp) { return resp.ok ? resp.json() : Promise.reject('data.json not found'); })
+            .then(function(data) {
+                siteData = data;
+                renderHero();
+                renderAbout();
+                renderProjects();
+                renderContact();
+            })
+            .catch(function(e) { console.warn('data.json failed', e); });
     }
-}
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadFull);
+    } else {
+        loadFull();
+    }
+})();
 
 function renderHeroFromPreload() {
-    const preload = window.__hero_preload;
+    var preload = window.__hero_preload;
     if (!preload) return;
     // Title
-    const nameEl = document.getElementById('heroName');
+    var nameEl = document.getElementById('heroName');
     if (nameEl && preload.title) nameEl.textContent = preload.title;
     // Avatar
-    const avatarImg = document.getElementById('heroAvatarImg');
+    var avatarImg = document.getElementById('heroAvatarImg');
     if (avatarImg && preload.image) {
         avatarImg.onload = function() {
             avatarImg.style.transition = 'opacity 0.3s ease';
@@ -41,7 +48,7 @@ function renderHeroFromPreload() {
     }
     // Subtitle
     if (preload.subtitle_zh || preload.subtitle_en) {
-        const subEl = document.getElementById('heroSubtitle');
+        var subEl = document.getElementById('heroSubtitle');
         if (subEl) {
             subEl.setAttribute('data-zh', preload.subtitle_zh || '');
             subEl.setAttribute('data-en', preload.subtitle_en || '');
@@ -275,12 +282,8 @@ function animateHero() {
 
 if (document.readyState === 'complete') {
     animateHero();
-    loadSiteData();
 } else {
-    window.addEventListener('DOMContentLoaded', () => {
-        animateHero();
-        loadSiteData();
-    });
+    window.addEventListener('DOMContentLoaded', animateHero);
 }
 
 // ===== Counter Animation =====

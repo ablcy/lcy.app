@@ -2,6 +2,15 @@
 <html lang="zh-CN" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <!-- 首屏关键数据内联占位：HTML 解析阶段即可用，无需等待任何 JS -->
+    <script>
+        window.__hero_preload = {
+            title: "Yan",
+            image: "avatar.webp",
+            subtitle_zh: "",
+            subtitle_en: ""
+        };
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Yan — Digital Craftsman 个人主页">
@@ -15,16 +24,6 @@
     <link rel="dns-prefetch" href="https://github.com">
     <!-- 预加载 data.json：浏览器解析 HTML 阶段即开始下载，JS fetch 时命中缓存 -->
     <link rel="preload" as="fetch" href="data.json" crossorigin="anonymous">
-
-    <!-- 首屏关键数据内联占位：JS 执行前即可渲染 Hero，无需等待 fetch -->
-    <script>
-        window.__hero_preload = {
-            title: "Yan",
-            image: "avatar.webp",
-            subtitle_zh: "",
-            subtitle_en: ""
-        };
-    </script>
 
     
     <link rel="stylesheet" href="style.css">
@@ -80,6 +79,17 @@
                     <h1 class="hero-title">
                         <span class="hero-name" id="heroName">Yan</span>
                     </h1>
+                    <script>
+                    (function(){
+                        var p=window.__hero_preload;
+                        var el=document.getElementById('heroName');
+                        if(p&&p.title&&el)el.textContent=p.title;
+                        if(p&&(p.subtitle_zh||p.subtitle_en)){
+                            var sub=document.getElementById('heroSubtitle');
+                            if(sub){sub.setAttribute('data-zh',p.subtitle_zh||'');sub.setAttribute('data-en',p.subtitle_en||'');sub.textContent=(document.documentElement.lang||'').startsWith('en')?p.subtitle_en:p.subtitle_zh;}
+                        }
+                    })();
+                    </script>
                     <p class="hero-subtitle" id="heroSubtitle" data-zh="" data-en=""></p>
                     <div class="hero-stats">
                         <div class="stat">
@@ -99,6 +109,17 @@
                 <div class="hero-right">
                     <div class="hero-avatar" id="heroAvatarWrap">
                         <img data-src="" alt="Yan" class="avatar-img" id="heroAvatarImg" style="opacity:0;">
+                        <script>
+                        (function(){
+                            var p=window.__hero_preload;
+                            var img=document.getElementById('heroAvatarImg');
+                            if(p&&p.image&&img){
+                                img.onload=function(){this.style.opacity='1';};
+                                img.onerror=function(){this.style.opacity='1';};
+                                img.src=p.image;
+                            }
+                        })();
+                        </script>
                         <div class="avatar-ring"></div>
                         <div class="avatar-glow"></div>
                     </div>
@@ -656,6 +677,6 @@
     </div>
 
     <!-- JavaScript - 页面交互逻辑 -->
-    <script src="script.js" defer></script>
+    <script src="script.js" async></script>
 </body>
 </html>
