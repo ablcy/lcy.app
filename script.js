@@ -46,13 +46,14 @@ function renderHeroFromPreload() {
         };
         avatarImg.src = preload.image;
     }
-    // Subtitle
+    // Subtitle — use localStorage directly to avoid TDZ with 'let lang' declared later
     if (preload.subtitle_zh || preload.subtitle_en) {
         var subEl = document.getElementById('heroSubtitle');
         if (subEl) {
             subEl.setAttribute('data-zh', preload.subtitle_zh || '');
             subEl.setAttribute('data-en', preload.subtitle_en || '');
-            subEl.textContent = (lang === 'zh' ? preload.subtitle_zh : preload.subtitle_en) || '';
+            var curLang = (localStorage.getItem('lang') || 'zh');
+            subEl.textContent = (curLang === 'zh' ? preload.subtitle_zh : preload.subtitle_en) || '';
         }
     }
 }
@@ -280,10 +281,10 @@ function animateHero() {
     });
 }
 
-if (document.readyState === 'complete') {
-    animateHero();
-} else {
+if (document.readyState === 'loading') {
     window.addEventListener('DOMContentLoaded', animateHero);
+} else {
+    animateHero();
 }
 
 // ===== Counter Animation =====
